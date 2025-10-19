@@ -14,6 +14,10 @@ inputs:
     description: "Path to write filtered LCOV output."
     default: "lcov.filtered.info"
     required: false
+  delete-unfiltered:
+    description: "Whether to delete the unfiltered LCOV file after filtering (recommended to avoid Codecov merging both reports)."
+    default: "true"
+    required: false
 
 runs:
   using: "composite"
@@ -21,4 +25,13 @@ runs:
     - name: Filter Rust tests from coverage
       shell: bash
       run: |
-        python3 "${{ github.action_path }}/filter_lcov.py"               --input "${{ inputs.input-file }}"               --output "${{ inputs.output-file }}"
+        echo "🔧 Running uncover-tests..."
+        args=""
+        if [[ "${{ inputs.delete-unfiltered }}" == "true" ]]; then
+          args="--delete-unfiltered"
+        fi
+
+        python3 "${{ github.action_path }}/filter_lcov.py" \
+          --input "${{ inputs.input-file }}" \
+          --output "${{ inputs.output-file }}" \
+          $args

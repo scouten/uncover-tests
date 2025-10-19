@@ -11,6 +11,12 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Filter LCOV data for Rust tests.")
     parser.add_argument("--input", default="lcov.info", help="Input LCOV file")
     parser.add_argument("--output", default="lcov.filtered.info", help="Output LCOV file")
+    parser.add_argument(
+        "--delete-unfiltered",
+        action="store_true",
+        default=False,
+        help="Delete the original LCOV file after filtering (recommended for Codecov)",
+    )
     return parser.parse_args()
 
 def find_source_roots(root):
@@ -160,10 +166,19 @@ def main():
 
     with open(args.input, "r", encoding="utf-8") as infile, open(args.output, "w", encoding="utf-8") as outfile:
         excluded_files, excluded_fns, excluded_lines = filter_lcov(infile, outfile, test_funcs, test_mod_ranges)
+
     print(f"🧹 Excluded {len(excluded_files)} test files", file=sys.stderr)
     print(f"🧹 Excluded {excluded_fns} test functions", file=sys.stderr)
     print(f"🧹 Excluded {excluded_lines} test lines", file=sys.stderr)
     print(f"✅ Wrote filtered LCOV to {args.output}", file=sys.stderr)
+
+    # Remove unfiltered file if so requested.
+    if args.delete_unfiltered:
+        try:
+            os.remove(args.input)
+            print(f"🧽 Deleted unfiltered coverage file: {args.input}", file=sys.stderr)
+        except Exception as e:
+            print(f"⚠️  Could not delete {args.input}: {e}", file=sys.stderr)
 
 if __name__ == "__main__":
     main()
