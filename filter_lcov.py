@@ -5,7 +5,7 @@ import sys
 import argparse
 
 # Locate all crate roots dynamically.
-ROOT = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.environ.get("GITHUB_WORKSPACE", os.getcwd())
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Filter LCOV data for Rust tests.")
