@@ -1,0 +1,30 @@
+name: Update v1 tag
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write  # Needed to push tags
+
+jobs:
+  update-v1-tag:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # needed to manipulate tags
+
+      - name: Move v1 tag if release is v1.x
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          echo "🔎 Current release tag: $TAG"
+
+          # Only update the v1 tag for releases that start with v1.
+          if [[ "$TAG" == v1.* ]]; then
+            echo "🏷️  Moving v1 tag to point at $TAG"
+            git tag -fa v1 -m "Move v1 tag to $TAG"
+            git push origin v1 --force
+          else
+            echo "⏭️  Release is not a v1.x version — leaving v1 tag unchanged."
+          fi
