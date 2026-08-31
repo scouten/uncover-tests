@@ -44,6 +44,14 @@ MOD_DEF_PATTERN = re.compile(r"^\s*mod\s+tests\s*\{")
 
 def normalize_path(p: str) -> str:
     """Normalize LCOV and filesystem paths for consistent matching."""
+
+    # Windows paths (from both os.walk and LCOV SF: records) use backslashes;
+    # fold them to forward slashes so matching behaves the same on all
+    # platforms. Without this, every Windows path fell through to its bare
+    # basename, and files sharing a basename in different directories collided
+    # in the test-module-range dict.
+    p = p.replace("\\", "/")
+
     if "/src/" in p:
         return p[p.find("/src/") :]
     return os.path.basename(p)
