@@ -23,6 +23,8 @@ jobs:
           # Only update the v1 tag for releases that start with v1.
           if [[ "$TAG" == v1.* ]]; then
             echo "🏷️  Moving v1 tag to point at $TAG"
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git tag -fa v1 -m "Move v1 tag to $TAG"
             git push origin v1 --force
           else
