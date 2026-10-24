@@ -39,8 +39,12 @@ FN_DEF_PATTERN = re.compile(r"^\s*fn\s+([A-Za-z0-9_]+)")
 # Matches #[cfg(test)] with optional spaces.
 TEST_MOD_PATTERN = re.compile(r"^\s*#\[cfg\s*\(\s*test\s*\)\s*\]")
 
-# Matches mod tests { possibly with spaces.
-MOD_DEF_PATTERN = re.compile(r"^\s*mod\s+tests\s*\{")
+# Matches mod tests { possibly with spaces, and with an optional visibility
+# qualifier such as `pub`, `pub(crate)`, `pub(super)`, or `pub(in path)`.
+# Without the qualifier support, a `#[cfg(test)] pub(crate) mod tests { ... }`
+# block was never recognized, so its non-#[test] helper functions and nested
+# declarations stayed in the coverage report.
+MOD_DEF_PATTERN = re.compile(r"^\s*(?:pub(?:\s*\([^)]*\))?\s+)?mod\s+tests\s*\{")
 
 def normalize_path(p: str) -> str:
     """Normalize LCOV and filesystem paths for consistent matching."""
@@ -127,14 +131,22 @@ def filter_lcov(infile, outfile, test_funcs, test_mod_ranges):
     excluded_lines = 0
     excluded_files = set()
 
+    # Names of functions whose FN: record was dropped because it lies inside a
+    # test module. FNDA: records carry no line number, so they can only be
+    # matched by name; without this, a helper's FN: line was stripped but its
+    # FNDA: line survived, leaving an orphaned record in the output.
+    excluded_fn_names = set()
+
     for line in infile:
         if line.startswith("SF:"):
             current_file = normalize_path(line.strip().split("SF:")[1])
             skip_block = "/tests/" in current_file or current_file.endswith("/tests.rs")
+            excluded_fn_names = set()
             if skip_block:
                 excluded_files.add(current_file)
         elif line.startswith("end_of_record"):
             skip_block = False
+            excluded_fn_names = set()
 
         if skip_block:
             continue
@@ -142,12 +154,13 @@ def filter_lcov(infile, outfile, test_funcs, test_mod_ranges):
         # Remove function-level data.
         if line.startswith(("FN:", "FNDA:")):
             fn_name = line.strip().split(",")[-1]
-            if fn_name in test_funcs:
+            if fn_name in test_funcs or fn_name in excluded_fn_names:
                 excluded_fns += 1
                 continue
             m = re.match(r"FN:(\d+),", line)
             if m and in_test_module(current_file, int(m.group(1)), test_mod_ranges):
                 excluded_fns += 1
+                excluded_fn_names.add(fn_name)
                 continue
 
         # Remove line coverage inside test modules.

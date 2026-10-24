@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+## Fixed
+
+* Recognize `#[cfg(test)]` modules declared with a visibility qualifier (`pub mod tests`, `pub(crate) mod tests`, etc.) so their helper code is excluded from LCOV ([#2](https://github.com/scouten/uncover-tests/issues/2))
+* Strip the `FNDA:` record of a non-`#[test]` function inside a test module along with its `FN:` record, instead of leaving an orphaned `FNDA:` line in the output
+
 ## [1.1.1](https://github.com/scouten/uncover-tests/compare/v1.1.0...v1.1.1)
 _31 August 2026_
 
