@@ -20,14 +20,14 @@ _31 August 2026_
 
 * Fix Windows path handling: normalize backslashes so files sharing a basename in different directories no longer collide, and test modules are stripped from Windows-generated LCOV reports
 
-## [1.1.0](https://github.com/scouten/asciidoc-parser/compare/v1.1.0...v1.0.1)
+## [1.1.0](https://github.com/scouten/uncover-tests/compare/v1.0.1...v1.1.0)
 _19 October 2025_
 
 ## Added
 
 * Add option to delete unfiltered LCOV output file
 
-## [1.0.1](https://github.com/scouten/asciidoc-parser/compare/v1.0.1...v1.0.0)
+## [1.0.1](https://github.com/scouten/uncover-tests/compare/v1.0.0...v1.0.1)
 _19 October 2025_
 
 ## Fixed
